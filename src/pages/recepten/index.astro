@@ -68,58 +68,25 @@ const slugs = recipes.map((r) => r.id);
 
         <div class="toolbar__active" id="filters-active" hidden>
           <span id="filters-active-text"></span>
-          <button type="button" class="toolbar__clear" id="filters-clear-inline">Wissen</button>
+          <button type="button" class="toolbar__clear" data-filters-reset>Wissen</button>
         </div>
 
-        <div class="filters-sheet" id="filters-sheet" aria-hidden="true">
-          <div class="filters-sheet__backdrop" data-filters-close></div>
-          <div
-            class="filters-sheet__panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="filters-sheet-title"
-            tabindex="-1"
-          >
-            <div class="filters-sheet__chrome">
-              <h2 id="filters-sheet-title">Filters</h2>
-              <button type="button" class="filters-sheet__close" data-filters-close aria-label="Sluiten">
-                ×
-              </button>
-            </div>
+        <div class="filters-desktop" aria-label="Filters">
+          <div class="filters" role="group" aria-label="Filter op tijd">
+            <button type="button" class="chip is-active" data-time="all">Alle tijden</button>
+            <button type="button" class="chip" data-time="15">≤ 15 min</button>
+            <button type="button" class="chip" data-time="30">≤ 30 min</button>
+          </div>
 
-            <div class="filters-sheet__content">
-              <div class="filters-section">
-                <p class="filters-section__label">Tijd</p>
-                <div class="filters" role="group" aria-label="Filter op tijd">
-                  <button type="button" class="chip is-active" data-time="all">Alle tijden</button>
-                  <button type="button" class="chip" data-time="15">≤ 15 min</button>
-                  <button type="button" class="chip" data-time="30">≤ 30 min</button>
-                </div>
-              </div>
-
-              <div class="filters-section">
-                <p class="filters-section__label">Categorie</p>
-                <div class="filters filters--cats" role="group" aria-label="Filter op categorie">
-                  <button type="button" class="chip is-active" data-filter="all">Alles</button>
-                  {
-                    categories.map((cat) => (
-                      <button type="button" class="chip" data-filter={cat}>
-                        {cat}
-                      </button>
-                    ))
-                  }
-                </div>
-              </div>
-            </div>
-
-            <div class="filters-sheet__footer">
-              <button type="button" class="filters-sheet__reset" id="filters-clear-sheet">
-                Filters wissen
-              </button>
-              <button type="button" class="btn filters-sheet__apply" id="filters-apply">
-                Toon recepten
-              </button>
-            </div>
+          <div class="filters filters--cats" role="group" aria-label="Filter op categorie">
+            <button type="button" class="chip is-active" data-filter="all">Alles</button>
+            {
+              categories.map((cat) => (
+                <button type="button" class="chip" data-filter={cat}>
+                  {cat}
+                </button>
+              ))
+            }
           </div>
         </div>
       </div>
@@ -153,6 +120,59 @@ const slugs = recipes.map((r) => r.id);
       <p class="empty" id="empty-state" hidden>Geen recepten gevonden. Probeer een andere zoekterm of filter.</p>
     </div>
   </main>
+
+  <div class="filters-sheet no-print" id="filters-sheet" aria-hidden="true" hidden>
+    <div class="filters-sheet__backdrop" data-filters-close></div>
+    <div
+      class="filters-sheet__panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filters-sheet-title"
+      tabindex="-1"
+    >
+      <div class="filters-sheet__chrome">
+        <h2 id="filters-sheet-title">Filters</h2>
+        <button type="button" class="filters-sheet__close" data-filters-close aria-label="Sluiten">
+          ×
+        </button>
+      </div>
+
+      <div class="filters-sheet__content">
+        <div class="filters-section">
+          <p class="filters-section__label">Tijd</p>
+          <div class="filters" role="group" aria-label="Filter op tijd">
+            <button type="button" class="chip is-active" data-time="all">Alle tijden</button>
+            <button type="button" class="chip" data-time="15">≤ 15 min</button>
+            <button type="button" class="chip" data-time="30">≤ 30 min</button>
+          </div>
+        </div>
+
+        <div class="filters-section">
+          <p class="filters-section__label">Categorie</p>
+          <div class="filters filters--cats" role="group" aria-label="Filter op categorie">
+            <button type="button" class="chip is-active" data-filter="all">Alles</button>
+            {
+              categories.map((cat) => (
+                <button type="button" class="chip" data-filter={cat}>
+                  {cat}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-sheet__footer">
+        <button type="button" class="filters-sheet__reset" data-filters-reset>
+          Filters wissen
+        </button>
+        <button type="button" class="btn filters-sheet__apply" id="filters-apply">
+          Toon recepten
+        </button>
+      </div>
+    </div>
+  </div>
+
   <Footer />
 </BaseLayout>
 
@@ -170,8 +190,6 @@ const slugs = recipes.map((r) => r.id);
   const badge = document.getElementById('filters-badge');
   const activeBar = document.getElementById('filters-active');
   const activeText = document.getElementById('filters-active-text');
-  const clearInline = document.getElementById('filters-clear-inline');
-  const clearSheet = document.getElementById('filters-clear-sheet');
 
   let activeCategory = 'all';
   let activeTime = 'all';
@@ -191,6 +209,11 @@ const slugs = recipes.map((r) => r.id);
     if (activeTime !== 'all') parts.push(`≤ ${activeTime} min`);
     if (activeCategory !== 'all') parts.push(activeCategory);
     return parts.join(' · ');
+  }
+
+  function syncChipState() {
+    catChips.forEach((c) => c.classList.toggle('is-active', (c.dataset.filter ?? 'all') === activeCategory));
+    timeChips.forEach((c) => c.classList.toggle('is-active', (c.dataset.time ?? 'all') === activeTime));
   }
 
   function updateChrome() {
@@ -251,15 +274,18 @@ const slugs = recipes.map((r) => r.id);
   function clearFilters() {
     activeCategory = 'all';
     activeTime = 'all';
-    catChips.forEach((c) => c.classList.toggle('is-active', c.dataset.filter === 'all'));
-    timeChips.forEach((c) => c.classList.toggle('is-active', c.dataset.time === 'all'));
+    syncChipState();
     applyFilters();
   }
 
   function openSheet() {
     if (!sheet || !openBtn) return;
     lastFocus = document.activeElement as HTMLElement | null;
-    sheet.classList.add('is-open');
+    sheet.hidden = false;
+    // next frame so the open transition can run
+    requestAnimationFrame(() => {
+      sheet.classList.add('is-open');
+    });
     sheet.setAttribute('aria-hidden', 'false');
     openBtn.setAttribute('aria-expanded', 'true');
     document.body.classList.add('filters-open');
@@ -272,13 +298,22 @@ const slugs = recipes.map((r) => r.id);
     sheet.setAttribute('aria-hidden', 'true');
     openBtn.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('filters-open');
+
+    const finish = () => {
+      sheet.hidden = true;
+      sheet.removeEventListener('transitionend', finish);
+    };
+    sheet.addEventListener('transitionend', finish);
+    // fallback if no transition fires
+    window.setTimeout(finish, 350);
+
     (lastFocus ?? openBtn).focus();
   }
 
   catChips.forEach((chip) => {
     chip.addEventListener('click', () => {
       activeCategory = chip.dataset.filter ?? 'all';
-      catChips.forEach((c) => c.classList.toggle('is-active', c === chip));
+      syncChipState();
       applyFilters();
     });
   });
@@ -286,7 +321,7 @@ const slugs = recipes.map((r) => r.id);
   timeChips.forEach((chip) => {
     chip.addEventListener('click', () => {
       activeTime = chip.dataset.time ?? 'all';
-      timeChips.forEach((c) => c.classList.toggle('is-active', c === chip));
+      syncChipState();
       applyFilters();
     });
   });
@@ -298,8 +333,10 @@ const slugs = recipes.map((r) => r.id);
 
   openBtn?.addEventListener('click', openSheet);
   applyBtn?.addEventListener('click', closeSheet);
-  clearInline?.addEventListener('click', clearFilters);
-  clearSheet?.addEventListener('click', clearFilters);
+
+  document.querySelectorAll('[data-filters-reset]').forEach((el) => {
+    el.addEventListener('click', clearFilters);
+  });
 
   document.querySelectorAll('[data-filters-close]').forEach((el) => {
     el.addEventListener('click', closeSheet);
@@ -451,6 +488,10 @@ const slugs = recipes.map((r) => r.id);
     text-underline-offset: 0.15em;
   }
 
+  .filters-desktop {
+    display: none;
+  }
+
   .filters-section {
     display: grid;
     gap: 0.45rem;
@@ -492,11 +533,11 @@ const slugs = recipes.map((r) => r.id);
     color: #fff;
   }
 
-  /* Mobile bottom sheet */
+  /* Mobile bottom sheet — outside toolbar so fixed = viewport */
   .filters-sheet {
     position: fixed;
     inset: 0;
-    z-index: 80;
+    z-index: 100;
     visibility: hidden;
     pointer-events: none;
   }
@@ -526,7 +567,7 @@ const slugs = recipes.map((r) => r.id);
     max-height: min(88vh, 40rem);
     display: flex;
     flex-direction: column;
-    background: var(--color-cream, #f3f0ea);
+    background: var(--color-cream, #faf7f2);
     border-radius: 1.15rem 1.15rem 0 0;
     box-shadow: 0 -12px 40px rgba(28, 32, 24, 0.18);
     transform: translateY(105%);
@@ -641,14 +682,10 @@ const slugs = recipes.map((r) => r.id);
     }
   }
 
-  /* Desktop: chips inline, sheet chrome gone */
   @media (min-width: 900px) {
     .filters-trigger,
     .toolbar__active,
-    .filters-sheet__backdrop,
-    .filters-sheet__chrome,
-    .filters-sheet__footer,
-    .filters-section__label {
+    .filters-sheet {
       display: none !important;
     }
 
@@ -667,39 +704,16 @@ const slugs = recipes.map((r) => r.id);
       grid-column: 1;
     }
 
-    .filters-sheet {
-      position: static;
-      visibility: visible;
-      pointer-events: auto;
+    .filters-desktop {
       display: contents;
     }
 
-    .filters-sheet__panel {
-      display: contents;
-      position: static;
-      max-height: none;
-      transform: none;
-      box-shadow: none;
-      border-radius: 0;
-      background: transparent;
-    }
-
-    .filters-sheet__content {
-      display: contents;
-      overflow: visible;
-      padding: 0;
-    }
-
-    .filters-section {
-      display: contents;
-    }
-
-    .filters {
+    .filters-desktop .filters {
       grid-column: 2;
       align-self: center;
     }
 
-    .filters--cats {
+    .filters-desktop .filters--cats {
       grid-column: 1 / -1;
     }
   }
