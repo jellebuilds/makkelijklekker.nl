@@ -1,6 +1,6 @@
 # Makkelijklekker.nl
 
-Moderne, statische receptensite gebouwd met [Astro](https://astro.build). De recepten komen uit de originele Makkelijk Lekker-site (2015–2018), teruggezet via het Internet Archive.
+Moderne, statische receptensite gebouwd met [Astro](https://astro.build). De recepten komen uit de originele Makkelijk Lekker-site (2015–2018), aangevuld met nieuwe recepten.
 
 ## Lokaal draaien
 
@@ -18,33 +18,39 @@ npm run build
 npm run preview
 ```
 
-De output staat in `dist/` — klaar om te hosten.
+De output staat in `dist/`.
 
-## Deployen
+## Deployen (GitHub + Vercel)
 
-Upload de inhoud van `dist/` naar je hosting, of koppel de repo aan:
+1. Maak op GitHub een nieuwe repo (bijv. `makkelijklekker.nl`), leeg, zonder README.
+2. Push deze code:
 
-- **Cloudflare Pages** — build command `npm run build`, output directory `dist`
-- **Netlify** — idem
-- **Vercel** — framework preset Astro
+```bash
+git remote add origin git@github.com:JOUW-USER/makkelijklekker.nl.git
+git push -u origin main
+```
 
-Zorg dat DNS voor `makkelijklekker.nl` naar je host wijst.
+3. Ga naar [vercel.com/new](https://vercel.com/new), importeer de GitHub-repo.
+4. Framework: **Astro** (of laat Vercel het detecteren). Build: `npm run build`, output: `dist`.
+5. Deploy.
+
+### Domein koppelen (Mijn Domein → Vercel)
+
+In Vercel: **Project → Settings → Domains** → voeg toe:
+- `makkelijklekker.nl`
+- `www.makkelijklekker.nl`
+
+In **Mijn Domein** (DNS-beheer van `makkelijklekker.nl`), zet:
+
+| Type  | Naam | Waarde                 |
+|-------|------|------------------------|
+| A     | `@`  | `76.76.21.21`          |
+| CNAME | `www`| `cname.vercel-dns.com` |
+
+Verwijder oude A/CNAME-records die naar een andere host wijzen. DNS kan 5 minuten tot een paar uur duren.
+
+Vercel toont exact de records die je nodig hebt — volg die als ze afwijken.
 
 ## Content toevoegen
 
-Nieuwe recepten: voeg een Markdown-bestand toe in `src/content/recipes/` met frontmatter:
-
-```yaml
----
-title: "Titel"
-description: "Korte intro"
-pubDate: 2026-07-22
-minutes: 20
-servings: 2
-categories:
-  - Lunch
-image: "/images/recipes/jouw-foto.jpg"
----
-```
-
-Plaats de foto in `public/images/recipes/`.
+Nieuwe recepten: Markdown in `src/content/recipes/` + foto in `public/images/recipes/`.
