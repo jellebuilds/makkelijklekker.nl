@@ -10,10 +10,9 @@ const recipes = await getCollection('recipes');
 const heroImage = '/images/recipes/pasta-pesto-kip-cherrytomaat.jpg';
 const slugs = recipes.map((r) => r.id);
 
-/** Stable fallback for no-JS / first paint before shuffle */
-const fallback = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const fallbackFeatured = fallback[0];
-const fallbackRest = fallback.slice(1, 7);
+const newest = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const featured = newest[0];
+const rest = newest.slice(1, 7);
 
 const websiteLd = [
   {
@@ -65,47 +64,25 @@ const websiteLd = [
       </div>
 
       <div class="home-picks">
-        <div class="featured" data-featured-slot>
-          {
-            fallbackFeatured && (
-              <div data-pick-id={fallbackFeatured.id}>
-                <RecipeCard
-                  featured
-                  href={`/recepten/${fallbackFeatured.id}/`}
-                  title={fallbackFeatured.data.title}
-                  description={fallbackFeatured.data.description}
-                  image={fallbackFeatured.data.image}
-                  minutes={fallbackFeatured.data.minutes}
-                  categories={fallbackFeatured.data.categories}
-                />
-              </div>
-            )
-          }
-        </div>
-
-        <div class="grid" data-grid-slot>
-          {
-            fallbackRest.map((recipe) => (
-              <div data-pick-id={recipe.id}>
-                <RecipeCard
-                  href={`/recepten/${recipe.id}/`}
-                  title={recipe.data.title}
-                  description={recipe.data.description}
-                  image={recipe.data.image}
-                  minutes={recipe.data.minutes}
-                  categories={recipe.data.categories}
-                />
-              </div>
-            ))
-          }
-        </div>
-      </div>
-
-      <!-- Inert pool for client shuffle; <template> keeps it out of the rendered DOM/indexable main content -->
-      <template id="recipe-pool">
         {
-          recipes.map((recipe) => (
-            <div data-pick-id={recipe.id}>
+          featured && (
+            <div class="featured">
+              <RecipeCard
+                featured
+                href={`/recepten/${featured.id}/`}
+                title={featured.data.title}
+                description={featured.data.description}
+                image={featured.data.image}
+                minutes={featured.data.minutes}
+                categories={featured.data.categories}
+              />
+            </div>
+          )
+        }
+
+        <div class="grid">
+          {
+            rest.map((recipe) => (
               <RecipeCard
                 href={`/recepten/${recipe.id}/`}
                 title={recipe.data.title}
@@ -114,10 +91,10 @@ const websiteLd = [
                 minutes={recipe.data.minutes}
                 categories={recipe.data.categories}
               />
-            </div>
-          ))
-        }
-      </template>
+            ))
+          }
+        </div>
+      </div>
 
       <div class="more reveal">
         <a class="btn" href="/recepten/">Alle recepten</a>
@@ -137,38 +114,6 @@ const websiteLd = [
 </BaseLayout>
 
 <script>
-  function shuffle<T>(items: T[]): T[] {
-    const arr = [...items];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  const pool = document.getElementById('recipe-pool') as HTMLTemplateElement | null;
-  const featuredSlot = document.querySelector<HTMLElement>('[data-featured-slot]');
-  const gridSlot = document.querySelector<HTMLElement>('[data-grid-slot]');
-
-  if (pool?.content && featuredSlot && gridSlot) {
-    const cards = shuffle([...pool.content.querySelectorAll<HTMLElement>(':scope > [data-pick-id]')]);
-    const selected = cards.slice(0, 7);
-
-    featuredSlot.replaceChildren();
-    gridSlot.replaceChildren();
-
-    selected.forEach((card, index) => {
-      const clone = card.cloneNode(true) as HTMLElement;
-      if (index === 0) {
-        clone.querySelector('.recipe')?.classList.add('recipe--featured');
-        featuredSlot.appendChild(clone);
-      } else {
-        clone.querySelector('.recipe')?.classList.remove('recipe--featured');
-        gridSlot.appendChild(clone);
-      }
-    });
-  }
-
   document.querySelectorAll<HTMLButtonElement>('[data-random-recipe]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const slugs = (btn.dataset.slugs ?? '').split(',').filter(Boolean);
