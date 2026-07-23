@@ -107,9 +107,30 @@ const recipeLd = {
 
         <div class="recipe-page__grid">
           <aside class="recipe-page__aside">
-            <h2>Ingrediënten</h2>
-            <ul>
-              {ingredients.map((item) => <li>{item}</li>)}
+            <div class="ingredients-head">
+              <h2>Ingrediënten</h2>
+              <div
+                class="servings-control no-print"
+                data-base-servings={recipe.data.servings}
+              >
+                <button type="button" class="servings-control__btn" data-servings-delta="-1" aria-label="Minder personen">
+                  −
+                </button>
+                <p class="servings-control__label">
+                  <strong id="servings-value">{recipe.data.servings}</strong>
+                  <span id="servings-unit">{recipe.data.servings === 1 ? 'persoon' : 'personen'}</span>
+                </p>
+                <button type="button" class="servings-control__btn" data-servings-delta="1" aria-label="Meer personen">
+                  +
+                </button>
+              </div>
+            </div>
+            <ul id="ingredient-list">
+              {
+                ingredients.map((item) => (
+                  <li data-ingredient={item}>{item}</li>
+                ))
+              }
             </ul>
             {
               tools.length > 0 && (
@@ -139,6 +160,41 @@ const recipeLd = {
   </main>
   <Footer />
 </BaseLayout>
+
+<script>
+  import { scaleIngredient } from '../../lib/scaleIngredient';
+
+  const control = document.querySelector<HTMLElement>('.servings-control');
+  if (control) {
+    const baseServings = Number(control.dataset.baseServings || 1);
+    const valueEl = document.getElementById('servings-value');
+    const unitEl = document.getElementById('servings-unit');
+    const metaEl = document.getElementById('meta-servings');
+    const items = [...document.querySelectorAll<HTMLElement>('#ingredient-list [data-ingredient]')];
+    const minServings = 1;
+    const maxServings = Math.max(12, baseServings * 3);
+    let servings = baseServings;
+
+    function render() {
+      const factor = servings / baseServings;
+      if (valueEl) valueEl.textContent = String(servings);
+      if (unitEl) unitEl.textContent = servings === 1 ? 'persoon' : 'personen';
+      if (metaEl) metaEl.textContent = String(servings);
+      items.forEach((li) => {
+        const original = li.dataset.ingredient ?? '';
+        li.textContent = scaleIngredient(original, factor);
+      });
+    }
+
+    control.querySelectorAll<HTMLButtonElement>('[data-servings-delta]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const delta = Number(btn.dataset.servingsDelta || 0);
+        servings = Math.min(maxServings, Math.max(minServings, servings + delta));
+        render();
+      });
+    });
+  }
+</script>
 
 <style>
   .recipe-page__hero {
@@ -215,6 +271,62 @@ const recipeLd = {
     font-size: 1.35rem;
     color: var(--color-olive);
     margin: 0 0 1rem;
+  }
+
+  .ingredients-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .ingredients-head h2 {
+    margin: 0;
+  }
+
+  .servings-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: rgba(250, 247, 242, 0.85);
+    padding: 0.2rem;
+  }
+
+  .servings-control__btn {
+    appearance: none;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-olive-deep);
+    font: inherit;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .servings-control__btn:hover {
+    background: var(--color-olive);
+    color: #fff;
+  }
+
+  .servings-control__label {
+    margin: 0;
+    min-width: 5.75rem;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 550;
+    color: var(--color-ink-soft);
+  }
+
+  .servings-control__label strong {
+    color: var(--color-olive-deep);
+    font-weight: 650;
   }
 
   .tools-title {
