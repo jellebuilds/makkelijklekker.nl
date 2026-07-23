@@ -48,22 +48,36 @@ const related = allRecipes
     categories: r.data.categories,
   }));
 
+const recipeUrl = new URL(`/recepten/${recipe.id}/`, Astro.site).href;
+
 const recipeLd = {
   '@context': 'https://schema.org',
   '@type': 'Recipe',
   name: recipe.data.title,
   description: recipe.data.description,
   image: [new URL(recipe.data.image, Astro.site).href],
+  url: recipeUrl,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': recipeUrl,
+  },
+  inLanguage: 'nl-NL',
   datePublished: recipe.data.pubDate.toISOString().slice(0, 10),
   author: {
     '@type': 'Person',
     name: 'Jelle Hoogeveen',
   },
-  prepTime: `PT${recipe.data.minutes}M`,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Makkelijklekker',
+    url: 'https://makkelijklekker.nl/',
+  },
+  cookTime: `PT${recipe.data.minutes}M`,
   totalTime: `PT${recipe.data.minutes}M`,
   recipeYield: `${recipe.data.servings} personen`,
   recipeCategory: recipe.data.categories.join(', '),
   keywords: recipe.data.categories.join(', '),
+  recipeCuisine: 'Nederlands',
   recipeIngredient: ingredients,
   recipeInstructions: steps.map((text, i) => ({
     '@type': 'HowToStep',
@@ -71,13 +85,40 @@ const recipeLd = {
     text,
   })),
 };
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: 'https://makkelijklekker.nl/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Recepten',
+      item: 'https://makkelijklekker.nl/recepten/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: recipe.data.title,
+      item: recipeUrl,
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title={recipe.data.title}
   description={recipe.data.description}
   image={recipe.data.image}
-  jsonLd={recipeLd}
+  imageAlt={recipe.data.title}
+  ogType="article"
+  jsonLd={[recipeLd, breadcrumbLd]}
 >
   <Nav />
   <main>

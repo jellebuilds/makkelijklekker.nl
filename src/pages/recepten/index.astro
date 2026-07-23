@@ -14,11 +14,36 @@ const categories = [...new Set(recipes.flatMap((r) => r.data.categories))].sort(
 );
 
 const slugs = recipes.map((r) => r.id);
+
+const collectionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Alle makkelijke recepten',
+  description: `Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes.`,
+  url: 'https://makkelijklekker.nl/recepten/',
+  inLanguage: 'nl-NL',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Makkelijklekker',
+    url: 'https://makkelijklekker.nl/',
+  },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: recipes.length,
+    itemListElement: recipes.slice(0, 20).map((recipe, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `https://makkelijklekker.nl/recepten/${recipe.id}/`,
+      name: recipe.data.title,
+    })),
+  },
+};
 ---
 
 <BaseLayout
   title="Alle makkelijke recepten"
   description={`Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes. Zoek, filter op tijd of categorie.`}
+  jsonLd={collectionLd}
 >
   <Nav />
   <main class="page">

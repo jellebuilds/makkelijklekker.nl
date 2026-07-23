@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Pagina niet gevonden"
+  description="Deze pagina bestaat niet (meer). Ga terug naar de homepage of bekijk alle makkelijke recepten."
+  noindex
+>
+  <Nav />
+  <main class="container page">
+    <article class="reveal">
+      <p class="code">404</p>
+      <h1>Pagina niet gevonden</h1>
+      <p class="lead">
+        Deze URL bestaat niet (meer). Misschien is het recept verhuisd — of zat er een typo in de
+        link.
+      </p>
+      <div class="actions">
+        <a class="btn" href="/recepten/">Bekijk recepten</a>
+        <a class="btn btn-secondary" href="/">Naar home</a>
+      </div>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .page {
+    padding: clamp(4rem, 12vw, 7rem) 0;
+    max-width: 36rem;
+  }
+
+  .code {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: 650;
+    line-height: 1;
+    color: var(--color-tomato);
+  }
+
+  h1 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    color: var(--color-olive-deep);
+  }
+
+  .lead {
+    margin: 0 0 1.75rem;
+    color: var(--color-ink-soft);
+    font-size: 1.08rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+</style>

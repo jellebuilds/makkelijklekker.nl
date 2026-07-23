@@ -15,21 +15,40 @@ const fallback = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.p
 const fallbackFeatured = fallback[0];
 const fallbackRest = fallback.slice(1, 7);
 
-const websiteLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Makkelijklekker',
-  url: 'https://makkelijklekker.nl/',
-  description:
-    'Makkelijke recepten die lekker smaken. Snel en simpel koken zonder gedoe — lunch, diner en toetjes.',
-  inLanguage: 'nl-NL',
-};
+const websiteLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Makkelijklekker',
+    url: 'https://makkelijklekker.nl/',
+    description:
+      'Makkelijke recepten die lekker smaken. Snel en simpel koken zonder gedoe — lunch, diner en toetjes.',
+    inLanguage: 'nl-NL',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Makkelijklekker',
+      url: 'https://makkelijklekker.nl/',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Makkelijklekker',
+    url: 'https://makkelijklekker.nl/',
+    description: 'Makkelijke recepten die lekker smaken — sinds 2015.',
+    founder: {
+      '@type': 'Person',
+      name: 'Jelle Hoogeveen',
+    },
+  },
+];
 ---
 
 <BaseLayout
   title="Makkelijklekker"
   description="Makkelijke recepten die lekker smaken. Ontdek snelle pasta’s, salades, burgers en toetjes — simpel koken met boodschappen uit de supermarkt."
   image={heroImage}
+  imageAlt="Pasta pesto met kip en cherrytomaat — makkelijk lekker avondeten"
   jsonLd={websiteLd}
 >
   <Nav />
@@ -82,8 +101,8 @@ const websiteLd = {
         </div>
       </div>
 
-      <!-- Volledige pool: hieruit kiest de browser elke keer 7 willekeurige recepten -->
-      <div id="recipe-pool" hidden>
+      <!-- Inert pool for client shuffle; <template> keeps it out of the rendered DOM/indexable main content -->
+      <template id="recipe-pool">
         {
           recipes.map((recipe) => (
             <div data-pick-id={recipe.id}>
@@ -98,7 +117,7 @@ const websiteLd = {
             </div>
           ))
         }
-      </div>
+      </template>
 
       <div class="more reveal">
         <a class="btn" href="/recepten/">Alle recepten</a>
@@ -127,13 +146,13 @@ const websiteLd = {
     return arr;
   }
 
-  const pool = document.getElementById('recipe-pool');
+  const pool = document.getElementById('recipe-pool') as HTMLTemplateElement | null;
   const featuredSlot = document.querySelector<HTMLElement>('[data-featured-slot]');
   const gridSlot = document.querySelector<HTMLElement>('[data-grid-slot]');
   const picksRoot = document.querySelector<HTMLElement>('[data-home-picks]');
 
-  if (pool && featuredSlot && gridSlot) {
-    const cards = shuffle([...pool.querySelectorAll<HTMLElement>(':scope > [data-pick-id]')]);
+  if (pool?.content && featuredSlot && gridSlot) {
+    const cards = shuffle([...pool.content.querySelectorAll<HTMLElement>(':scope > [data-pick-id]')]);
     const selected = cards.slice(0, 7);
 
     featuredSlot.replaceChildren();

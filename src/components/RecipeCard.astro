@@ -14,7 +14,7 @@ const { href, title, description, image, minutes, categories, featured = false }
 
 <a class:list={['recipe', { 'recipe--featured': featured }, 'reveal']} href={href}>
   <div class="recipe__media">
-    <img src={image} alt="" loading="lazy" width="800" height="600" />
+    <img src={image} alt={title} loading="lazy" width="800" height="600" />
   </div>
   <div class="recipe__body">
     <p class="recipe__meta">
