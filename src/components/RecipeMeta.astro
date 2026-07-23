@@ -1,4 +1,6 @@
 ---
+import { categoryHubPath } from '../lib/hubs';
+
 interface Props {
   minutes: number;
   servings: number;
@@ -19,7 +21,16 @@ const { minutes, servings, categories } = Astro.props;
   </li>
   <li>
     <span>Categorie</span>
-    <strong>{categories.join(' · ')}</strong>
+    <strong class="meta__cats">
+      {
+        categories.map((cat, i) => (
+          <>
+            {i > 0 && ' · '}
+            {categoryHubPath[cat] ? <a href={categoryHubPath[cat]}>{cat}</a> : cat}
+          </>
+        ))
+      }
+    </strong>
   </li>
 </ul>
 
@@ -48,5 +59,15 @@ const { minutes, servings, categories } = Astro.props;
     font-weight: 600;
     font-size: 1.02rem;
     color: var(--color-olive-deep);
+  }
+
+  .meta__cats a {
+    color: var(--color-olive-deep);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .meta__cats a:hover {
+    color: var(--color-tomato);
   }
 </style>

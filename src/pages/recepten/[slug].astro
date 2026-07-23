@@ -6,6 +6,8 @@ import Footer from '../../components/Footer.astro';
 import RecipeMeta from '../../components/RecipeMeta.astro';
 import RelatedRecipes from '../../components/RelatedRecipes.astro';
 import PrintButton from '../../components/PrintButton.astro';
+import HubLinks from '../../components/HubLinks.astro';
+import { categoryHubPath, hubsForRecipe } from '../../lib/hubs';
 
 export async function getStaticPaths() {
   const recipes = await getCollection('recipes');
@@ -110,6 +112,9 @@ const breadcrumbLd = {
     },
   ],
 };
+const relatedHubs = hubsForRecipe(recipe.data.categories, recipe.data.minutes);
+const primaryCat = recipe.data.categories[0];
+const primaryCatHref = primaryCat ? categoryHubPath[primaryCat] : undefined;
 ---
 
 <BaseLayout
@@ -133,7 +138,13 @@ const breadcrumbLd = {
             <p class="eyebrow">
               <a href="/recepten/">Recepten</a>
               <span aria-hidden="true">/</span>
-              {recipe.data.categories[0]}
+              {
+                primaryCatHref && primaryCat ? (
+                  <a href={primaryCatHref}>{primaryCat}</a>
+                ) : (
+                  primaryCat
+                )
+              }
             </p>
             <PrintButton />
           </div>
@@ -194,6 +205,15 @@ const breadcrumbLd = {
             </ol>
           </section>
         </div>
+
+        {
+          relatedHubs.length > 0 && (
+            <section class="recipe-hubs no-print">
+              <h2>Meer in deze hoek</h2>
+              <HubLinks hubs={relatedHubs} />
+            </section>
+          )
+        }
 
         <RelatedRecipes recipes={related} />
       </div>
@@ -281,6 +301,18 @@ const breadcrumbLd = {
   .eyebrow a {
     text-decoration: none;
     color: var(--color-tomato);
+  }
+
+  .recipe-hubs {
+    margin-top: 2.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .recipe-hubs h2 {
+    margin: 0 0 0.85rem;
+    font-size: 1.2rem;
+    color: var(--color-olive-deep);
   }
 
   h1 {

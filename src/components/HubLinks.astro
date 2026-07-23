@@ -1,0 +1,48 @@
+---
+import { hubs as allHubs, type Hub } from '../lib/hubs';
+
+interface Props {
+  hubs?: Hub[];
+}
+
+const list = Astro.props.hubs ?? allHubs;
+---
+
+<ul class="hub-links">
+  {
+    list.map((hub) => (
+      <li>
+        <a href={`/recepten/${hub.slug}/`}>{hub.navLabel}</a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .hub-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hub-links a {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 550;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    color: var(--color-olive-deep);
+    background: rgba(250, 247, 242, 0.75);
+  }
+
+  .hub-links a:hover {
+    background: var(--color-olive);
+    border-color: var(--color-olive);
+    color: #fff;
+  }
+</style>

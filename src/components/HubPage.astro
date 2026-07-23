@@ -1,0 +1,197 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from './Nav.astro';
+import Footer from './Footer.astro';
+import RecipeCard from './RecipeCard.astro';
+import HubLinks from './HubLinks.astro';
+import { filterHubRecipes, hubs, type Hub } from '../lib/hubs';
+
+interface Props {
+  hub: Hub;
+}
+
+const { hub } = Astro.props;
+const all = await getCollection('recipes');
+const recipes = filterHubRecipes(all, hub);
+const otherHubs = hubs.filter((h) => h.slug !== hub.slug);
+
+const pageUrl = new URL(`/recepten/${hub.slug}/`, Astro.site).href;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: hub.title,
+    description: hub.description,
+    url: pageUrl,
+    inLanguage: 'nl-NL',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Makkelijklekker',
+      url: 'https://www.makkelijklekker.nl/',
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: recipes.length,
+      itemListElement: recipes.map((recipe, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: new URL(`/recepten/${recipe.id}/`, Astro.site).href,
+        name: recipe.data.title,
+      })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://www.makkelijklekker.nl/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Recepten',
+        item: 'https://www.makkelijklekker.nl/recepten/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: hub.title,
+        item: pageUrl,
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout title={hub.title} description={hub.description} jsonLd={jsonLd}>
+  <Nav />
+  <main class="page">
+    <div class="container">
+      <header class="page__head reveal">
+        <p class="eyebrow">
+          <a href="/recepten/">Recepten</a>
+          <span aria-hidden="true">/</span>
+          {hub.navLabel}
+        </p>
+        <h1>{hub.title}</h1>
+        {hub.intro.map((p) => <p class="lead">{p}</p>)}
+        <p class="count">{recipes.length} recepten</p>
+      </header>
+
+      <div class="grid">
+        {
+          recipes.map((recipe) => (
+            <RecipeCard
+              href={`/recepten/${recipe.id}/`}
+              title={recipe.data.title}
+              description={recipe.data.description}
+              image={recipe.data.image}
+              minutes={recipe.data.minutes}
+              categories={recipe.data.categories}
+            />
+          ))
+        }
+      </div>
+
+      <section class="more-hubs reveal">
+        <h2>Andere verzamelingen</h2>
+        <HubLinks hubs={otherHubs} />
+        <p class="all">
+          <a href="/recepten/">Of bekijk alle recepten</a>
+        </p>
+      </section>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .page {
+    padding-bottom: 3rem;
+  }
+
+  .page__head {
+    padding: clamp(2.25rem, 5vw, 3.5rem) 0 1.75rem;
+    max-width: 38rem;
+  }
+
+  .eyebrow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  .eyebrow a {
+    text-decoration: none;
+    color: var(--color-tomato);
+  }
+
+  h1 {
+    font-size: clamp(2.3rem, 6vw, 3.4rem);
+    color: var(--color-olive-deep);
+    margin: 0 0 0.85rem;
+  }
+
+  .lead {
+    margin: 0 0 0.75rem;
+    color: var(--color-ink-soft);
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .count {
+    margin: 1rem 0 0;
+    font-size: 0.92rem;
+    font-weight: 550;
+    color: var(--color-ink-soft);
+  }
+
+  .grid {
+    display: grid;
+    gap: 2.25rem 1.5rem;
+  }
+
+  .more-hubs {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .more-hubs h2 {
+    margin: 0 0 1rem;
+    font-size: 1.35rem;
+    color: var(--color-olive-deep);
+  }
+
+  .all {
+    margin: 1.25rem 0 0;
+  }
+
+  .all a {
+    font-weight: 550;
+  }
+
+  @media (min-width: 700px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

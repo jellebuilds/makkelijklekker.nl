@@ -4,6 +4,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import RecipeCard from '../../components/RecipeCard.astro';
+import HubLinks from '../../components/HubLinks.astro';
+import { hubs } from '../../lib/hubs';
 
 const recipes = (await getCollection('recipes')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
@@ -19,7 +21,7 @@ const collectionLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: 'Alle makkelijke recepten',
-  description: `Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes.`,
+  description: `${recipes.length} recepten voor doordeweeks: pasta, lunch, vega, toetjes en meer. Zoek op naam of filter op tijd.`,
   url: 'https://www.makkelijklekker.nl/recepten/',
   inLanguage: 'nl-NL',
   isPartOf: {
@@ -42,7 +44,7 @@ const collectionLd = {
 
 <BaseLayout
   title="Alle makkelijke recepten"
-  description={`Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes. Zoek, filter op tijd of categorie.`}
+  description={`${recipes.length} recepten voor doordeweeks: pasta, lunch, vega, toetjes en meer. Zoek op naam of filter op tijd.`}
   jsonLd={collectionLd}
 >
   <Nav />
@@ -52,8 +54,8 @@ const collectionLd = {
         <div class="page__intro">
           <h1>Makkelijke recepten</h1>
           <p>
-            {recipes.length} snelle recepten. Zoek op naam, filter op tijd of categorie — of laat het
-            lot beslissen.
+            {recipes.length} recepten. Zoek op naam, filter op tijd, of begin bij een verzameling —
+            of laat het lot beslissen.
           </p>
         </div>
         <button
@@ -65,6 +67,11 @@ const collectionLd = {
           Wat eten we vandaag?
         </button>
       </header>
+
+      <div class="hubs-bar reveal">
+        <p class="hubs-bar__label">Verzamelingen</p>
+        <HubLinks hubs={hubs} />
+      </div>
     </div>
 
     <div class="toolbar no-print">
@@ -418,6 +425,19 @@ const collectionLd = {
   .page__head p {
     color: var(--color-ink-soft);
     margin: 0;
+  }
+
+  .hubs-bar {
+    margin: 0 0 1.5rem;
+  }
+
+  .hubs-bar__label {
+    margin: 0 0 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
   }
 
   .toolbar {

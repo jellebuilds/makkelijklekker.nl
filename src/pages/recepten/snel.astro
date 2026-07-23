@@ -1,0 +1,9 @@
+---
+import HubPage from '../../components/HubPage.astro';
+import { getHub } from '../../lib/hubs';
+
+const hub = getHub('snel');
+if (!hub) throw new Error('Onbekende verzameling: snel');
+---
+
+<HubPage hub={hub} />

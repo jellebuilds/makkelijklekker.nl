@@ -5,6 +5,8 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import Hero from '../components/Hero.astro';
 import RecipeCard from '../components/RecipeCard.astro';
+import HubLinks from '../components/HubLinks.astro';
+import { hubs } from '../lib/hubs';
 
 const recipes = await getCollection('recipes');
 const heroImage = '/images/recipes/pasta-pesto-kip-cherrytomaat.jpg';
@@ -21,7 +23,7 @@ const websiteLd = [
     name: 'Makkelijklekker',
     url: 'https://www.makkelijklekker.nl/',
     description:
-      'Makkelijke recepten die lekker smaken. Snel en simpel koken zonder gedoe — lunch, diner en toetjes.',
+      'Recepten die je gewoon kunt koken — lunch, diner, toetjes. Sinds 2015.',
     inLanguage: 'nl-NL',
     publisher: {
       '@type': 'Organization',
@@ -34,7 +36,7 @@ const websiteLd = [
     '@type': 'Organization',
     name: 'Makkelijklekker',
     url: 'https://www.makkelijklekker.nl/',
-    description: 'Makkelijke recepten die lekker smaken — sinds 2015.',
+    description: 'Makkelijke recepten die lekker smaken. Sinds 2015.',
     founder: {
       '@type': 'Person',
       name: 'Jelle Hoogeveen',
@@ -45,9 +47,9 @@ const websiteLd = [
 
 <BaseLayout
   title="Makkelijklekker"
-  description="Makkelijke recepten die lekker smaken. Ontdek snelle pasta’s, salades, burgers en toetjes — simpel koken met boodschappen uit de supermarkt."
+  description="Makkelijke recepten die lekker smaken. Pasta, lunch, vega, toetjes — zonder chef-gedoe, met boodschappen uit de super."
   image={heroImage}
-  imageAlt="Pasta pesto met kip en cherrytomaat — makkelijk lekker avondeten"
+  imageAlt="Pasta pesto met kip en cherrytomaat"
   jsonLd={websiteLd}
 >
   <Nav />
@@ -56,10 +58,10 @@ const websiteLd = [
   <main>
     <section class="section container">
       <div class="section__head reveal">
-        <h2>Makkelijke recepten uit de keuken</h2>
+        <h2>Nieuw op het bord</h2>
         <p>
-          Kort van tijd, groot van smaak. Doordeweekse recepten die snel klaar zijn en gewoon lekker
-          smaken.
+          De laatste recepten die erbij kwamen. Geen fancy verhaal — gewoon dingen die je vanavond
+          kunt koken.
         </p>
       </div>
 
@@ -95,6 +97,12 @@ const websiteLd = [
           }
         </div>
       </div>
+
+      <section class="hubs reveal">
+        <h2>Waar heb je zin in?</h2>
+        <p>Begin bij een verzameling — sneller dan scrollen door alles.</p>
+        <HubLinks hubs={hubs} />
+      </section>
 
       <div class="more reveal">
         <a class="btn" href="/recepten/">Alle recepten</a>
@@ -154,6 +162,23 @@ const websiteLd = [
   .grid {
     display: grid;
     gap: 2.35rem 1.5rem;
+  }
+
+  .hubs {
+    margin: 3.5rem 0 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .hubs h2 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    color: var(--color-olive-deep);
+  }
+
+  .hubs p {
+    margin: 0 0 1rem;
+    color: var(--color-ink-soft);
   }
 
   .more {
