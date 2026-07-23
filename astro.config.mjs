@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
+const SITE = 'https://www.makkelijklekker.nl';
 const recipesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'src/content/recipes');
 /** @type {Map<string, Date>} */
 const recipeLastmods = new Map();
@@ -17,12 +18,12 @@ for (const file of fs.readdirSync(recipesDir)) {
   if (!match) continue;
   const date = new Date(match[1].trim());
   if (!Number.isNaN(date.valueOf())) {
-    recipeLastmods.set(`https://makkelijklekker.nl/recepten/${slug}/`, date);
+    recipeLastmods.set(`${SITE}/recepten/${slug}/`, date);
   }
 }
 
 export default defineConfig({
-  site: 'https://makkelijklekker.nl',
+  site: SITE,
   trailingSlash: 'always',
   integrations: [
     sitemap({

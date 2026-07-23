@@ -20,12 +20,12 @@ const collectionLd = {
   '@type': 'CollectionPage',
   name: 'Alle makkelijke recepten',
   description: `Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes.`,
-  url: 'https://makkelijklekker.nl/recepten/',
+  url: 'https://www.makkelijklekker.nl/recepten/',
   inLanguage: 'nl-NL',
   isPartOf: {
     '@type': 'WebSite',
     name: 'Makkelijklekker',
-    url: 'https://makkelijklekker.nl/',
+    url: 'https://www.makkelijklekker.nl/',
   },
   mainEntity: {
     '@type': 'ItemList',
@@ -33,7 +33,7 @@ const collectionLd = {
     itemListElement: recipes.slice(0, 20).map((recipe, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      url: `https://makkelijklekker.nl/recepten/${recipe.id}/`,
+      url: `https://www.makkelijklekker.nl/recepten/${recipe.id}/`,
       name: recipe.data.title,
     })),
   },
