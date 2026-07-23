@@ -138,7 +138,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const safeEmail = escapeHtml(email);
     const safeMessage = escapeHtml(message).replaceAll('\n', '<br>');
 
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: [TO_EMAIL],
       replyTo: email,
@@ -154,7 +154,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (error) {
       console.error('Resend error', error);
-      res.status(502).json({ ok: false, error: 'Versturen mislukt. Probeer het later opnieuw.' });
+      const detail = String(error.message || '');
+      let friendly = 'Versturen mislukt. Probeer het later opnieuw.';
+      if (/only send testing emails to your own/i.test(detail)) {
+        friendly =
+          'Resend accepteert in testmodus alleen mail naar het adres waarmee je bent ingelogd. Zet CONTACT_TO_EMAIL op dat adres, of verifieer je domein in Resend.';
+      } else if (/invalid.*api.*key|unauthorized|401/i.test(detail)) {
+        friendly = 'Resend API-key is ongeldig. Check RESEND_API_KEY in Vercel.';
+      } else if (/from|domain|not verified/i.test(detail)) {
+        friendly =
+          'Afzender niet toegestaan. Laat RESEND_FROM_EMAIL leeg (gebruikt onboarding@resend.dev) of verifieer je domein.';
+      }
+      res.status(502).json({ ok: false, error: friendly });
+      return;
+    }
+
+    if (!data?.id) {
+      res.status(502).json({ ok: false, error: 'Versturen mislukt: geen bevestiging van Resend.' });
       return;
     }
 
