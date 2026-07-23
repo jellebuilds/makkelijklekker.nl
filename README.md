@@ -51,6 +51,32 @@ Verwijder oude A/CNAME-records die naar een andere host wijzen. DNS kan 5 minute
 
 Vercel toont exact de records die je nodig hebt — volg die als ze afwijken.
 
+## Contactformulier (spamveilig)
+
+Het formulier op `/contact/` stuurt berichten via een Vercel API-route naar Hotmail.
+
+Beveiliging:
+- Cloudflare Turnstile (captcha)
+- Honeypot-veld
+- Minimale invultijd
+- Rate limiting
+- Server-side validatie
+
+### Env-vars op Vercel (Settings → Environment Variables)
+
+| Naam | Waarde |
+|------|--------|
+| `CONTACT_TO_EMAIL` | `jellehoogeveen@hotmail.com` |
+| `RESEND_API_KEY` | key van [resend.com](https://resend.com) |
+| `TURNSTILE_SECRET_KEY` | secret van Cloudflare Turnstile |
+| `PUBLIC_TURNSTILE_SITE_KEY` | site key van Turnstile |
+
+1. Maak een gratis [Resend](https://resend.com)-account → API key. (Voor productie: verifieer `makkelijklekker.nl` en zet `RESEND_FROM_EMAIL`.)
+2. Maak bij Cloudflare → **Turnstile** een widget (domein `makkelijklekker.nl` + `localhost`).
+3. Zet de 4 env-vars in Vercel → Redeploy.
+
+Lokaal: kopieer `.env.example` naar `.env` en vul de keys in.
+
 ## Content toevoegen
 
 Nieuwe recepten: Markdown in `src/content/recipes/` + foto in `public/images/recipes/`.

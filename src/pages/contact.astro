@@ -2,11 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <BaseLayout
   title="Contact"
-  description="Neem contact op met Makkelijklekker. Vragen over een recept, een tip, of gewoon hallo — mail ons."
+  description="Neem contact op met Makkelijklekker via het contactformulier. Vragen over een recept, een tip, of gewoon hallo."
 >
   <Nav />
   <main class="container page">
@@ -14,15 +16,147 @@ import Footer from '../components/Footer.astro';
       <h1>Contact</h1>
       <p class="lead">
         Vraag over een recept, tip voor iets nieuws makkelijk lekkers, of gewoon hallo zeggen? Stuur
-        een mail — we lezen mee.
+        een bericht — we lezen mee.
       </p>
-      <p>
-        <a class="mail" href="mailto:hallo@makkelijklekker.nl">hallo@makkelijklekker.nl</a>
-      </p>
+
+      <form class="contact-form" id="contact-form" novalidate>
+        <input type="hidden" name="startedAt" id="startedAt" value="" />
+
+        <!-- Honeypot: verborgen voor mensen, zichtbaar voor veel bots -->
+        <div class="hp" aria-hidden="true">
+          <label for="website">Website</label>
+          <input
+            type="text"
+            id="website"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
+        <label class="field">
+          <span>Naam</span>
+          <input type="text" name="name" id="name" required maxlength="80" autocomplete="name" />
+        </label>
+
+        <label class="field">
+          <span>E-mail</span>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            maxlength="120"
+            autocomplete="email"
+          />
+        </label>
+
+        <label class="field">
+          <span>Bericht</span>
+          <textarea name="message" id="message" required maxlength="4000" rows="6"></textarea>
+        </label>
+
+        {
+          turnstileSiteKey ? (
+            <div
+              class="cf-turnstile"
+              data-sitekey={turnstileSiteKey}
+              data-theme="light"
+            />
+          ) : (
+            <p class="form-note">
+              Spambeveiliging wordt geconfigureerd. Het formulier werkt zodra Turnstile + Resend op
+              Vercel staan.
+            </p>
+          )
+        }
+
+        <p class="form-status" id="form-status" role="status" aria-live="polite" hidden></p>
+
+        <button type="submit" class="btn" id="submit-btn" disabled={!turnstileSiteKey}>
+          Verstuur bericht
+        </button>
+      </form>
     </article>
   </main>
   <Footer />
 </BaseLayout>
+
+{turnstileSiteKey && (
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+)}
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const statusEl = document.getElementById('form-status');
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+  const startedAt = document.getElementById('startedAt') as HTMLInputElement | null;
+
+  if (startedAt) startedAt.value = String(Date.now());
+
+  function setStatus(message: string, type: 'ok' | 'error' | 'info') {
+    if (!statusEl) return;
+    statusEl.hidden = false;
+    statusEl.textContent = message;
+    statusEl.dataset.type = type;
+  }
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form || !submitBtn) return;
+
+    const data = new FormData(form);
+    const turnstileInput = form.querySelector(
+      '[name="cf-turnstile-response"]'
+    ) as HTMLInputElement | null;
+
+    const payload = {
+      name: String(data.get('name') || '').trim(),
+      email: String(data.get('email') || '').trim(),
+      message: String(data.get('message') || '').trim(),
+      website: String(data.get('website') || '').trim(),
+      startedAt: Number(data.get('startedAt') || 0),
+      turnstileToken: turnstileInput?.value || '',
+    };
+
+    if (!payload.name || !payload.email || !payload.message) {
+      setStatus('Vul alle velden in.', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setStatus('Bezig met versturen…', 'info');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { ok?: boolean; error?: string };
+
+      if (!res.ok || !json.ok) {
+        setStatus(json.error || 'Versturen mislukt. Probeer het later opnieuw.', 'error');
+        submitBtn.disabled = false;
+        // Reset Turnstile widget if present
+        const w = window as Window & {
+          turnstile?: { reset: (el?: HTMLElement) => void };
+        };
+        const widget = form.querySelector('.cf-turnstile') as HTMLElement | null;
+        if (widget && w.turnstile) w.turnstile.reset(widget);
+        return;
+      }
+
+      form.reset();
+      if (startedAt) startedAt.value = String(Date.now());
+      setStatus('Dank je! Je bericht is verstuurd.', 'ok');
+      submitBtn.disabled = false;
+    } catch {
+      setStatus('Geen verbinding. Probeer het later opnieuw.', 'error');
+      submitBtn.disabled = false;
+    }
+  });
+</script>
 
 <style>
   .page {
@@ -38,17 +172,84 @@ import Footer from '../components/Footer.astro';
   .lead {
     font-size: 1.15rem;
     color: var(--color-ink-soft);
+    margin-bottom: 2rem;
   }
 
-  .mail {
-    font-family: var(--font-display);
-    font-size: clamp(1.4rem, 3vw, 1.9rem);
+  .contact-form {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .field span {
+    font-size: 0.85rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  .field input,
+  .field textarea {
+    font: inherit;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.45rem;
+    background: rgba(250, 247, 242, 0.9);
+    color: var(--color-ink);
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    outline: 2px solid var(--color-olive);
+    outline-offset: 1px;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 9rem;
+  }
+
+  .hp {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form-note,
+  .form-status {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .form-note {
+    color: var(--color-ink-soft);
+  }
+
+  .form-status[data-type='ok'] {
+    color: var(--color-olive);
     font-weight: 600;
-    color: var(--color-tomato);
-    text-decoration: none;
   }
 
-  .mail:hover {
-    text-decoration: underline;
+  .form-status[data-type='error'] {
+    color: var(--color-tomato-deep);
+    font-weight: 600;
+  }
+
+  .form-status[data-type='info'] {
+    color: var(--color-ink-soft);
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
   }
 </style>
