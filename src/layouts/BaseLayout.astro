@@ -68,6 +68,14 @@ const ogImage = new URL(image, Astro.site).href;
   </head>
   <body>
     <slot />
+    <script is:inline>
+      // Failsafe: never leave content invisible if the reveal observer fails
+      window.setTimeout(() => {
+        document.querySelectorAll('.reveal:not(.is-visible)').forEach((el) => {
+          el.classList.add('is-visible');
+        });
+      }, 1200);
+    </script>
     <script>
       const reveals = document.querySelectorAll('.reveal');
       if ('IntersectionObserver' in window) {
@@ -80,7 +88,7 @@ const ogImage = new URL(image, Astro.site).href;
               }
             });
           },
-          { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+          { threshold: 0.08, rootMargin: '0px 0px -4% 0px' }
         );
         reveals.forEach((el) => io.observe(el));
       } else {

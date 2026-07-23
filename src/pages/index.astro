@@ -64,7 +64,7 @@ const websiteLd = [
         </p>
       </div>
 
-      <div class="home-picks" data-home-picks>
+      <div class="home-picks">
         <div class="featured" data-featured-slot>
           {
             fallbackFeatured && (
@@ -149,7 +149,6 @@ const websiteLd = [
   const pool = document.getElementById('recipe-pool') as HTMLTemplateElement | null;
   const featuredSlot = document.querySelector<HTMLElement>('[data-featured-slot]');
   const gridSlot = document.querySelector<HTMLElement>('[data-grid-slot]');
-  const picksRoot = document.querySelector<HTMLElement>('[data-home-picks]');
 
   if (pool?.content && featuredSlot && gridSlot) {
     const cards = shuffle([...pool.content.querySelectorAll<HTMLElement>(':scope > [data-pick-id]')]);
@@ -160,19 +159,15 @@ const websiteLd = [
 
     selected.forEach((card, index) => {
       const clone = card.cloneNode(true) as HTMLElement;
-      const link = clone.querySelector('.recipe');
-      link?.classList.add('is-visible');
       if (index === 0) {
-        link?.classList.add('recipe--featured');
+        clone.querySelector('.recipe')?.classList.add('recipe--featured');
         featuredSlot.appendChild(clone);
       } else {
-        link?.classList.remove('recipe--featured');
+        clone.querySelector('.recipe')?.classList.remove('recipe--featured');
         gridSlot.appendChild(clone);
       }
     });
   }
-
-  picksRoot?.setAttribute('data-ready', '');
 
   document.querySelectorAll<HTMLButtonElement>('[data-random-recipe]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -207,15 +202,6 @@ const websiteLd = [
     line-height: 1.55;
   }
 
-  .home-picks:not([data-ready]) {
-    opacity: 0;
-  }
-
-  .home-picks[data-ready] {
-    opacity: 1;
-    transition: opacity 0.35s var(--ease);
-  }
-
   .featured {
     margin-bottom: 3.25rem;
   }
@@ -242,14 +228,6 @@ const websiteLd = [
   @media (min-width: 1000px) {
     .grid {
       grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .home-picks:not([data-ready]),
-    .home-picks[data-ready] {
-      opacity: 1;
-      transition: none;
     }
   }
 </style>
