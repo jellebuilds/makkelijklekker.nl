@@ -40,4 +40,4 @@ Kip in roomboter met kipkruiden, rijst met noten, en een kommetje zelfgemaakte t
 2. Maak de tzatziki: rasp de komkommer grof, knijp goed uit in een theedoek of keukenpapier. Meng met yoghurt, fijngehakte knoflook, olijfolie, zout en eventueel munt of dille. Zet koel.
 3. Dep de kip droog. Kruid beide kanten met kipkruiden, peper en zout.
 4. Smelt de roomboter in een bakpan op middelhoog vuur. Bak de kip 4–5 minuten per kant tot goudbruin en gaar (kerntemperatuur ±75 °C). Lepel af en toe wat boter over de kip.
-5. Laat de kip 2 minuten rusten. Serveer met notenrijst en schep de tzatziki royaal over kip én rijst — niet zuinig, dat houdt het sappig.
+5. Laat de kip 2 minuten rusten. Serveer met notenrijst: een schep tzatziki over de rijst, de rest ernaast op het bord — niet zuinig, dat houdt het sappig.
