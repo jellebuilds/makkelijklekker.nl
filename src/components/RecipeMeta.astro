@@ -1,0 +1,52 @@
+---
+interface Props {
+  minutes: number;
+  servings: number;
+  categories: string[];
+}
+
+const { minutes, servings, categories } = Astro.props;
+---
+
+<ul class="meta">
+  <li>
+    <span>Tijd</span>
+    <strong>{minutes} min</strong>
+  </li>
+  <li>
+    <span>Personen</span>
+    <strong>{servings}</strong>
+  </li>
+  <li>
+    <span>Categorie</span>
+    <strong>{categories.join(' · ')}</strong>
+  </li>
+</ul>
+
+<style>
+  .meta {
+    list-style: none;
+    margin: 0 0 2rem;
+    padding: 1.1rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1rem 1.5rem;
+    border-block: 1px solid var(--color-line);
+  }
+
+  .meta span {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.2rem;
+  }
+
+  .meta strong {
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--color-olive-deep);
+  }
+</style>

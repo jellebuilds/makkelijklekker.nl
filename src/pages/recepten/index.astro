@@ -1,0 +1,313 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import RecipeCard from '../../components/RecipeCard.astro';
+
+const recipes = (await getCollection('recipes')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const categories = [...new Set(recipes.flatMap((r) => r.data.categories))].sort((a, b) =>
+  a.localeCompare(b, 'nl')
+);
+
+const slugs = recipes.map((r) => r.id);
+---
+
+<BaseLayout
+  title="Alle makkelijke recepten"
+  description={`Bekijk ${recipes.length} makkelijke recepten die lekker smaken: pasta, salades, vlees, vis, vegetarisch en toetjes. Zoek, filter op tijd of categorie.`}
+>
+  <Nav />
+  <main class="page">
+    <div class="container">
+      <header class="page__head reveal">
+        <div class="page__intro">
+          <h1>Makkelijke recepten</h1>
+          <p>
+            {recipes.length} snelle recepten. Zoek op naam, filter op tijd of categorie — of laat het
+            lot beslissen.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn btn-secondary page__random"
+          data-random-recipe
+          data-slugs={slugs.join(',')}
+        >
+          Wat eten we vandaag?
+        </button>
+      </header>
+    </div>
+
+    <div class="toolbar no-print">
+      <div class="container toolbar__inner">
+        <label class="search">
+          <span class="visually-hidden">Zoek recepten</span>
+          <input
+            type="search"
+            id="recipe-search"
+            placeholder="Zoek op recept, categorie…"
+            autocomplete="off"
+          />
+        </label>
+
+        <div class="filters" role="group" aria-label="Filter op tijd">
+          <button type="button" class="chip is-active" data-time="all">Alle tijden</button>
+          <button type="button" class="chip" data-time="15">≤ 15 min</button>
+          <button type="button" class="chip" data-time="30">≤ 30 min</button>
+        </div>
+
+        <div class="filters filters--cats" role="group" aria-label="Filter op categorie">
+          <button type="button" class="chip is-active" data-filter="all">Alles</button>
+          {
+            categories.map((cat) => (
+              <button type="button" class="chip" data-filter={cat}>
+                {cat}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <p class="results" id="results-count" aria-live="polite"></p>
+
+      <div class="grid" id="recipe-grid">
+        {
+          recipes.map((recipe) => (
+            <div
+              class="grid__item"
+              data-categories={recipe.data.categories.join('|')}
+              data-minutes={recipe.data.minutes}
+              data-search={`${recipe.data.title} ${recipe.data.description} ${recipe.data.categories.join(' ')}`.toLowerCase()}
+            >
+              <RecipeCard
+                href={`/recepten/${recipe.id}/`}
+                title={recipe.data.title}
+                description={recipe.data.description}
+                image={recipe.data.image}
+                minutes={recipe.data.minutes}
+                categories={recipe.data.categories}
+              />
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="empty" id="empty-state" hidden>Geen recepten gevonden. Probeer een andere zoekterm of filter.</p>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  const searchInput = document.getElementById('recipe-search') as HTMLInputElement | null;
+  const items = [...document.querySelectorAll<HTMLElement>('.grid__item')];
+  const catChips = [...document.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+  const timeChips = [...document.querySelectorAll<HTMLButtonElement>('[data-time]')];
+  const resultsCount = document.getElementById('results-count');
+  const emptyState = document.getElementById('empty-state');
+
+  let activeCategory = 'all';
+  let activeTime = 'all';
+  let query = '';
+
+  function applyFilters() {
+    let visible = 0;
+    items.forEach((item) => {
+      const cats = item.dataset.categories?.split('|') ?? [];
+      const minutes = Number(item.dataset.minutes ?? 999);
+      const haystack = item.dataset.search ?? '';
+      const matchCat = activeCategory === 'all' || cats.includes(activeCategory);
+      const matchTime =
+        activeTime === 'all' || minutes <= Number(activeTime);
+      const matchQuery = !query || haystack.includes(query);
+      const show = matchCat && matchTime && matchQuery;
+      item.hidden = !show;
+      if (show) visible += 1;
+    });
+
+    if (resultsCount) {
+      resultsCount.textContent =
+        visible === items.length
+          ? `${visible} recepten`
+          : `${visible} van ${items.length} recepten`;
+    }
+    if (emptyState) emptyState.hidden = visible > 0;
+  }
+
+  catChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      activeCategory = chip.dataset.filter ?? 'all';
+      catChips.forEach((c) => c.classList.toggle('is-active', c === chip));
+      applyFilters();
+    });
+  });
+
+  timeChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      activeTime = chip.dataset.time ?? 'all';
+      timeChips.forEach((c) => c.classList.toggle('is-active', c === chip));
+      applyFilters();
+    });
+  });
+
+  searchInput?.addEventListener('input', () => {
+    query = searchInput.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-random-recipe]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const slugs = (btn.dataset.slugs ?? '').split(',').filter(Boolean);
+      if (!slugs.length) return;
+      const slug = slugs[Math.floor(Math.random() * slugs.length)];
+      window.location.href = `/recepten/${slug}/`;
+    });
+  });
+
+  applyFilters();
+</script>
+
+<style>
+  .page {
+    padding-bottom: 3rem;
+  }
+
+  .page__head {
+    padding: clamp(2.25rem, 5vw, 3.5rem) 0 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+
+  .page__intro {
+    max-width: 36rem;
+  }
+
+  .page__head h1 {
+    font-size: clamp(2.3rem, 6vw, 3.5rem);
+    color: var(--color-olive-deep);
+    margin-bottom: 0.45rem;
+  }
+
+  .page__head p {
+    color: var(--color-ink-soft);
+    margin: 0;
+  }
+
+  .toolbar {
+    position: sticky;
+    top: 3.75rem;
+    z-index: 40;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(243, 240, 234, 0.92);
+    border-block: 1px solid var(--color-line);
+    margin-bottom: 1.75rem;
+  }
+
+  .toolbar__inner {
+    padding: 0.85rem 0 1rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .search input {
+    width: 100%;
+    font: inherit;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: rgba(250, 247, 242, 0.9);
+    color: var(--color-ink);
+  }
+
+  .search input:focus {
+    outline: 2px solid var(--color-olive);
+    outline-offset: 1px;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .chip {
+    appearance: none;
+    border: 1px solid var(--color-line);
+    background: rgba(250, 247, 242, 0.75);
+    color: var(--color-ink-soft);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 550;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .chip:hover,
+  .chip.is-active {
+    background: var(--color-olive);
+    border-color: var(--color-olive);
+    color: #fff;
+  }
+
+  .results {
+    margin: 0 0 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 550;
+    color: var(--color-ink-soft);
+  }
+
+  .grid {
+    display: grid;
+    gap: 2.25rem 1.5rem;
+  }
+
+  .empty {
+    margin: 2rem 0;
+    color: var(--color-ink-soft);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (min-width: 700px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .toolbar__inner {
+      grid-template-columns: minmax(12rem, 1fr) auto;
+      align-items: start;
+    }
+
+    .filters--cats {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -1,0 +1,236 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Hero from '../components/Hero.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+
+const recipes = await getCollection('recipes');
+const heroImage = '/images/recipes/pasta-pesto-kip-cherrytomaat.jpg';
+const slugs = recipes.map((r) => r.id);
+
+/** Stable fallback for no-JS / first paint before shuffle */
+const fallback = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const fallbackFeatured = fallback[0];
+const fallbackRest = fallback.slice(1, 7);
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Makkelijklekker',
+  url: 'https://makkelijklekker.nl/',
+  description:
+    'Makkelijke recepten die lekker smaken. Snel en simpel koken zonder gedoe — lunch, diner en toetjes.',
+  inLanguage: 'nl-NL',
+};
+---
+
+<BaseLayout
+  title="Makkelijklekker"
+  description="Makkelijke recepten die lekker smaken. Ontdek snelle pasta’s, salades, burgers en toetjes — simpel koken met boodschappen uit de supermarkt."
+  image={heroImage}
+  jsonLd={websiteLd}
+>
+  <Nav />
+  <Hero image={heroImage} recipeSlugs={slugs} />
+
+  <main>
+    <section class="section container">
+      <div class="section__head reveal">
+        <h2>Makkelijke recepten uit de keuken</h2>
+        <p>
+          Kort van tijd, groot van smaak. Doordeweekse recepten die snel klaar zijn en gewoon lekker
+          smaken.
+        </p>
+      </div>
+
+      <div class="home-picks" data-home-picks>
+        <div class="featured" data-featured-slot>
+          {
+            fallbackFeatured && (
+              <div data-pick-id={fallbackFeatured.id}>
+                <RecipeCard
+                  featured
+                  href={`/recepten/${fallbackFeatured.id}/`}
+                  title={fallbackFeatured.data.title}
+                  description={fallbackFeatured.data.description}
+                  image={fallbackFeatured.data.image}
+                  minutes={fallbackFeatured.data.minutes}
+                  categories={fallbackFeatured.data.categories}
+                />
+              </div>
+            )
+          }
+        </div>
+
+        <div class="grid" data-grid-slot>
+          {
+            fallbackRest.map((recipe) => (
+              <div data-pick-id={recipe.id}>
+                <RecipeCard
+                  href={`/recepten/${recipe.id}/`}
+                  title={recipe.data.title}
+                  description={recipe.data.description}
+                  image={recipe.data.image}
+                  minutes={recipe.data.minutes}
+                  categories={recipe.data.categories}
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Volledige pool: hieruit kiest de browser elke keer 7 willekeurige recepten -->
+      <div id="recipe-pool" hidden>
+        {
+          recipes.map((recipe) => (
+            <div data-pick-id={recipe.id}>
+              <RecipeCard
+                href={`/recepten/${recipe.id}/`}
+                title={recipe.data.title}
+                description={recipe.data.description}
+                image={recipe.data.image}
+                minutes={recipe.data.minutes}
+                categories={recipe.data.categories}
+              />
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="more reveal">
+        <a class="btn" href="/recepten/">Alle recepten</a>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-random-recipe
+          data-slugs={slugs.join(',')}
+        >
+          Wat eten we vandaag?
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  function shuffle<T>(items: T[]): T[] {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const pool = document.getElementById('recipe-pool');
+  const featuredSlot = document.querySelector<HTMLElement>('[data-featured-slot]');
+  const gridSlot = document.querySelector<HTMLElement>('[data-grid-slot]');
+  const picksRoot = document.querySelector<HTMLElement>('[data-home-picks]');
+
+  if (pool && featuredSlot && gridSlot) {
+    const cards = shuffle([...pool.querySelectorAll<HTMLElement>(':scope > [data-pick-id]')]);
+    const selected = cards.slice(0, 7);
+
+    featuredSlot.replaceChildren();
+    gridSlot.replaceChildren();
+
+    selected.forEach((card, index) => {
+      const clone = card.cloneNode(true) as HTMLElement;
+      const link = clone.querySelector('.recipe');
+      link?.classList.add('is-visible');
+      if (index === 0) {
+        link?.classList.add('recipe--featured');
+        featuredSlot.appendChild(clone);
+      } else {
+        link?.classList.remove('recipe--featured');
+        gridSlot.appendChild(clone);
+      }
+    });
+  }
+
+  picksRoot?.setAttribute('data-ready', '');
+
+  document.querySelectorAll<HTMLButtonElement>('[data-random-recipe]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const slugs = (btn.dataset.slugs ?? '').split(',').filter(Boolean);
+      if (!slugs.length) return;
+      const slug = slugs[Math.floor(Math.random() * slugs.length)];
+      window.location.href = `/recepten/${slug}/`;
+    });
+  });
+</script>
+
+<style>
+  .section {
+    padding: clamp(3.25rem, 8vw, 5.5rem) 0;
+  }
+
+  .section__head {
+    max-width: 34rem;
+    margin-bottom: 2.75rem;
+  }
+
+  .section__head h2 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    color: var(--color-olive-deep);
+    margin-bottom: 0.55rem;
+  }
+
+  .section__head p {
+    color: var(--color-ink-soft);
+    margin: 0;
+    font-size: 1.08rem;
+    line-height: 1.55;
+  }
+
+  .home-picks:not([data-ready]) {
+    opacity: 0;
+  }
+
+  .home-picks[data-ready] {
+    opacity: 1;
+    transition: opacity 0.35s var(--ease);
+  }
+
+  .featured {
+    margin-bottom: 3.25rem;
+  }
+
+  .grid {
+    display: grid;
+    gap: 2.35rem 1.5rem;
+  }
+
+  .more {
+    margin: 3.25rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  @media (min-width: 700px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-picks:not([data-ready]),
+    .home-picks[data-ready] {
+      opacity: 1;
+      transition: none;
+    }
+  }
+</style>

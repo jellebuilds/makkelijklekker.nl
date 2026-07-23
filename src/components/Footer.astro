@@ -1,0 +1,67 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="footer no-print">
+  <div class="container footer__inner">
+    <div>
+      <p class="footer__brand">Makkelijklekker</p>
+      <p class="footer__tag">Makkelijke recepten die lekker smaken — sinds 2015.</p>
+    </div>
+    <nav class="footer__links" aria-label="Footer">
+      <a href="/recepten/">Recepten</a>
+      <a href="/over/">Over</a>
+      <a href="/contact/">Contact</a>
+    </nav>
+    <p class="footer__copy">&copy; {year} Makkelijklekker</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: 5rem;
+    padding: 3rem 0 2.5rem;
+    border-top: 1px solid var(--color-line);
+    background: rgba(30, 50, 34, 0.04);
+  }
+
+  .footer__inner {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .footer__brand {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    margin: 0 0 0.25rem;
+    color: var(--color-olive-deep);
+  }
+
+  .footer__tag,
+  .footer__copy {
+    margin: 0;
+    color: var(--color-ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .footer__links {
+    display: flex;
+    gap: 1.25rem;
+    font-weight: 500;
+  }
+
+  .footer__links a {
+    text-decoration: none;
+  }
+
+  @media (min-width: 720px) {
+    .footer__inner {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+
+    .footer__copy {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

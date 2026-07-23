@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Over Makkelijklekker"
+  description="Makkelijklekker is een receptensite voor snel en simpel koken. Makkelijke recepten met herkenbare ingrediënten — zonder chef-trucjes of eindeloze boodschappenlijstjes."
+>
+  <Nav />
+  <main class="container page">
+    <article class="reveal">
+      <h1>Over Makkelijklekker</h1>
+      <p class="lead">
+        Makkelijklekker draait om één ding: makkelijk én lekker eten op tafel krijgen. Geen fancy
+        chef-trucjes, geen eindeloze boodschappenlijstjes — wel recepten die werken op een
+        doordeweekse avond.
+      </p>
+      <p>
+        De site begon in 2015 als plek voor snelle recepten: salades, burgers, pasta, toetjes. Na
+        een paar jaar offline stonden die gerechten nog in het webarchief. Nu staan ze hier weer,
+        samen met nieuwe favorieten — in een frisse jas, met dezelfde nuchtere keukentaal.
+      </p>
+      <p>
+        Verwacht korte bereidingstijden, ingrediënten uit de supermarkt, en stappen die je gewoon
+        kunt volgen. Want lekker koken mag best makkelijk zijn.
+      </p>
+      <p>
+        <a class="btn" href="/recepten/">Bekijk alle recepten</a>
+      </p>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .page {
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0 3rem;
+    max-width: 42rem;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.5rem);
+    color: var(--color-olive-deep);
+  }
+
+  .lead {
+    font-size: 1.2rem;
+    color: var(--color-ink);
+  }
+
+  p {
+    color: var(--color-ink-soft);
+  }
+</style>

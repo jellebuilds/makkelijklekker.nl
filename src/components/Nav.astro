@@ -1,0 +1,90 @@
+---
+const pathname = Astro.url.pathname;
+const links = [
+  { href: '/recepten/', label: 'Recepten' },
+  { href: '/over/', label: 'Over' },
+  { href: '/contact/', label: 'Contact' },
+];
+---
+
+<header class="nav no-print">
+  <div class="nav__inner container">
+    <a class="nav__brand" href="/">Makkelijklekker</a>
+    <nav class="nav__links" aria-label="Hoofdnavigatie">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[{ 'is-active': pathname === link.href || pathname.startsWith(link.href) }]}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(243, 240, 234, 0.84);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 3.75rem;
+  }
+
+  .nav__brand {
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 3.5vw, 1.45rem);
+    font-weight: 650;
+    text-decoration: none;
+    letter-spacing: -0.03em;
+    color: var(--color-olive-deep);
+  }
+
+  .nav__brand:hover {
+    color: var(--color-tomato);
+  }
+
+  .nav__links {
+    display: flex;
+    gap: clamp(0.85rem, 3vw, 1.5rem);
+    font-size: 0.92rem;
+    font-weight: 550;
+  }
+
+  .nav__links a {
+    position: relative;
+    text-decoration: none;
+    color: var(--color-ink-soft);
+    padding: 0.25rem 0;
+  }
+
+  .nav__links a:hover {
+    color: var(--color-olive-deep);
+  }
+
+  .nav__links a.is-active {
+    color: var(--color-olive-deep);
+  }
+
+  .nav__links a.is-active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.15rem;
+    height: 2px;
+    background: var(--color-tomato);
+    border-radius: 1px;
+  }
+</style>

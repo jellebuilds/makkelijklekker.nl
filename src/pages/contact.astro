@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Neem contact op met Makkelijklekker. Vragen over een recept, een tip, of gewoon hallo — mail ons."
+>
+  <Nav />
+  <main class="container page">
+    <article class="reveal">
+      <h1>Contact</h1>
+      <p class="lead">
+        Vraag over een recept, tip voor iets nieuws makkelijk lekkers, of gewoon hallo zeggen? Stuur
+        een mail — we lezen mee.
+      </p>
+      <p>
+        <a class="mail" href="mailto:hallo@makkelijklekker.nl">hallo@makkelijklekker.nl</a>
+      </p>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .page {
+    padding: clamp(2.5rem, 6vw, 4.5rem) 0 3rem;
+    max-width: 40rem;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.5rem);
+    color: var(--color-olive-deep);
+  }
+
+  .lead {
+    font-size: 1.15rem;
+    color: var(--color-ink-soft);
+  }
+
+  .mail {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    font-weight: 600;
+    color: var(--color-tomato);
+    text-decoration: none;
+  }
+
+  .mail:hover {
+    text-decoration: underline;
+  }
+</style>

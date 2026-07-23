@@ -1,0 +1,273 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import RecipeMeta from '../../components/RecipeMeta.astro';
+import RelatedRecipes from '../../components/RelatedRecipes.astro';
+import PrintButton from '../../components/PrintButton.astro';
+
+export async function getStaticPaths() {
+  const recipes = await getCollection('recipes');
+  return recipes.map((recipe) => ({
+    params: { slug: recipe.id },
+    props: { recipe, allRecipes: recipes },
+  }));
+}
+
+const { recipe, allRecipes } = Astro.props;
+
+const intro =
+  recipe.body
+    .split(/## Ingrediënten/)[0]
+    ?.trim()
+    .replace(/\n+/g, ' ') ?? recipe.data.description;
+
+const ingredientSection = recipe.body.match(/## Ingrediënten\n\n([\s\S]*?)(?=\n## |$)/)?.[1] ?? '';
+const toolsSection = recipe.body.match(/## Tools\n\n([\s\S]*?)(?=\n## |$)/)?.[1] ?? '';
+const stepSection = recipe.body.match(/## Stappen\n\n([\s\S]*?)(?=\n## |$)/)?.[1] ?? '';
+const ingredients = [...ingredientSection.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+const tools = [...toolsSection.matchAll(/^- (.+)$/gm)].map((m) => m[1]);
+const steps = [...stepSection.matchAll(/^\d+\. (.+)$/gm)].map((m) => m[1]);
+
+const related = allRecipes
+  .filter((r) => r.id !== recipe.id)
+  .map((r) => ({
+    recipe: r,
+    score: r.data.categories.filter((c) => recipe.data.categories.includes(c)).length,
+  }))
+  .filter((r) => r.score > 0)
+  .sort((a, b) => b.score - a.score || b.recipe.data.pubDate.valueOf() - a.recipe.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map(({ recipe: r }) => ({
+    id: r.id,
+    title: r.data.title,
+    description: r.data.description,
+    image: r.data.image,
+    minutes: r.data.minutes,
+    categories: r.data.categories,
+  }));
+
+const recipeLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Recipe',
+  name: recipe.data.title,
+  description: recipe.data.description,
+  image: [new URL(recipe.data.image, Astro.site).href],
+  datePublished: recipe.data.pubDate.toISOString().slice(0, 10),
+  author: {
+    '@type': 'Person',
+    name: 'Jelle Hoogeveen',
+  },
+  prepTime: `PT${recipe.data.minutes}M`,
+  totalTime: `PT${recipe.data.minutes}M`,
+  recipeYield: `${recipe.data.servings} personen`,
+  recipeCategory: recipe.data.categories.join(', '),
+  keywords: recipe.data.categories.join(', '),
+  recipeIngredient: ingredients,
+  recipeInstructions: steps.map((text, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    text,
+  })),
+};
+---
+
+<BaseLayout
+  title={recipe.data.title}
+  description={recipe.data.description}
+  image={recipe.data.image}
+  jsonLd={recipeLd}
+>
+  <Nav />
+  <main>
+    <article class="recipe-page">
+      <div class="recipe-page__hero">
+        <img src={recipe.data.image} alt={recipe.data.title} width="1400" height="900" />
+      </div>
+
+      <div class="container recipe-page__shell">
+        <header class="recipe-page__header">
+          <div class="recipe-page__top">
+            <p class="eyebrow">
+              <a href="/recepten/">Recepten</a>
+              <span aria-hidden="true">/</span>
+              {recipe.data.categories[0]}
+            </p>
+            <PrintButton />
+          </div>
+          <h1>{recipe.data.title}</h1>
+          <p class="lead">{intro}</p>
+          <RecipeMeta
+            minutes={recipe.data.minutes}
+            servings={recipe.data.servings}
+            categories={recipe.data.categories}
+          />
+        </header>
+
+        <div class="recipe-page__grid">
+          <aside class="recipe-page__aside">
+            <h2>Ingrediënten</h2>
+            <ul>
+              {ingredients.map((item) => <li>{item}</li>)}
+            </ul>
+            {
+              tools.length > 0 && (
+                <>
+                  <h2 class="tools-title">Tools</h2>
+                  <ul>
+                    {tools.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                </>
+              )
+            }
+          </aside>
+
+          <section class="recipe-page__steps">
+            <h2>Stappen</h2>
+            <ol>
+              {steps.map((step) => <li>{step}</li>)}
+            </ol>
+          </section>
+        </div>
+
+        <RelatedRecipes recipes={related} />
+      </div>
+    </article>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .recipe-page__hero {
+    overflow: hidden;
+    background: var(--color-olive-deep);
+  }
+
+  .recipe-page__hero img {
+    width: 100%;
+    height: min(52vh, 28rem);
+    object-fit: cover;
+  }
+
+  .recipe-page__shell {
+    padding: clamp(1.75rem, 4vw, 3rem) 0 2.5rem;
+  }
+
+  .recipe-page__header {
+    max-width: 46rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .recipe-page__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .eyebrow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  .eyebrow a {
+    text-decoration: none;
+    color: var(--color-tomato);
+  }
+
+  h1 {
+    font-size: clamp(2.15rem, 5vw, 3.35rem);
+    color: var(--color-olive-deep);
+    margin: 0 0 0.85rem;
+  }
+
+  .lead {
+    font-size: 1.08rem;
+    color: var(--color-ink-soft);
+    margin: 0 0 0.25rem;
+    line-height: 1.55;
+  }
+
+  .recipe-page__grid {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .recipe-page__aside,
+  .recipe-page__steps {
+    min-width: 0;
+  }
+
+  .recipe-page__aside h2,
+  .recipe-page__steps h2 {
+    font-size: 1.35rem;
+    color: var(--color-olive);
+    margin: 0 0 1rem;
+  }
+
+  .tools-title {
+    margin-top: 1.75rem !important;
+  }
+
+  .recipe-page__aside ul,
+  .recipe-page__steps ol {
+    margin: 0;
+    padding-left: 1.15rem;
+  }
+
+  .recipe-page__aside li,
+  .recipe-page__steps li {
+    margin-bottom: 0.55rem;
+    line-height: 1.5;
+  }
+
+  .recipe-page__steps li {
+    padding-left: 0.2rem;
+    margin-bottom: 0.85rem;
+  }
+
+  @media (min-width: 860px) {
+    .recipe-page__hero img {
+      height: min(58vh, 32rem);
+    }
+
+    .recipe-page__grid {
+      grid-template-columns: minmax(15rem, 0.9fr) 1.35fr;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .recipe-page__aside {
+      position: sticky;
+      top: 5rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .recipe-page__hero img {
+      height: min(42vh, 18rem);
+    }
+  }
+
+  @media print {
+    .recipe-page__hero img {
+      height: 200px;
+    }
+
+    .recipe-page__aside {
+      position: static;
+    }
+  }
+</style>

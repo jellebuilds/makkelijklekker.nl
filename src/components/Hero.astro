@@ -1,0 +1,145 @@
+---
+interface Props {
+  image?: string;
+  title?: string;
+  recipeSlugs?: string[];
+}
+
+const {
+  image = '/images/recipes/pasta-pesto-kip-cherrytomaat.jpg',
+  title = 'Makkelijklekker',
+  recipeSlugs = [],
+} = Astro.props;
+---
+
+<section class="hero">
+  <div class="hero__media" style={`--hero-image: url('${image}')`} aria-hidden="true"></div>
+  <div class="hero__veil" aria-hidden="true"></div>
+  <div class="hero__content container">
+    <p class="hero__brand">{title}</p>
+    <p class="hero__lead">Makkelijke recepten die lekker smaken.</p>
+    <div class="hero__actions">
+      <a class="btn" href="/recepten/">Bekijk recepten</a>
+      {
+        recipeSlugs.length > 0 && (
+          <button
+            type="button"
+            class="btn btn-ghost"
+            data-random-recipe
+            data-slugs={recipeSlugs.join(',')}
+          >
+            Wat eten we vandaag?
+          </button>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-random-recipe]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const slugs = (btn.dataset.slugs ?? '').split(',').filter(Boolean);
+      if (!slugs.length) return;
+      const slug = slugs[Math.floor(Math.random() * slugs.length)];
+      window.location.href = `/recepten/${slug}/`;
+    });
+  });
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: min(88vh, 48rem);
+    display: grid;
+    align-items: end;
+    overflow: hidden;
+    color: var(--color-cream);
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, rgba(20, 32, 22, 0.45), transparent 50%),
+      var(--hero-image) center / cover no-repeat;
+    transform: scale(1.06);
+    animation: hero-zoom 9s var(--ease) forwards;
+  }
+
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(16, 24, 16, 0.2) 0%,
+        rgba(16, 24, 16, 0.45) 45%,
+        rgba(16, 24, 16, 0.88) 100%
+      );
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 1;
+    padding-bottom: clamp(2.75rem, 9vh, 5rem);
+    padding-top: 5.5rem;
+    animation: hero-rise 1s var(--ease) 0.12s both;
+  }
+
+  .hero__brand {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 11vw, 6.75rem);
+    font-weight: 650;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    margin: 0 0 0.85rem;
+    max-width: 11ch;
+  }
+
+  .hero__lead {
+    font-size: clamp(1.1rem, 2.3vw, 1.4rem);
+    margin: 0 0 1.6rem;
+    max-width: 26ch;
+    color: rgba(250, 247, 242, 0.9);
+    line-height: 1.4;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  @keyframes hero-zoom {
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.4rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .hero {
+      min-height: min(82vh, 40rem);
+    }
+
+    .hero__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .hero__actions :global(.btn) {
+      justify-content: center;
+    }
+  }
+</style>
